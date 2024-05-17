@@ -1,0 +1,54 @@
+import psycopg2
+import csv
+
+
+conn = psycopg2.connect(
+    dbname="schooltime",
+    user="schooltime",
+    password="1111",
+    host="localhost"
+    
+)
+
+
+def read_data_from_csv(file_path):
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader) 
+        return [row for row in reader]
+
+
+def create_table():
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE classroom_schedule (
+            Id SERIAL PRIMARY KEY,
+            classroom VARCHAR(50),
+            day_of_week VARCHAR(10),
+            time VARCHAR(10),
+            availability INTEGER,
+            capacity INTEGER,
+            pc BOOLEAN,
+            projector BOOLEAN
+        )
+    """)
+    conn.commit()
+    cur.close()
+
+
+def insert_data(data):
+    cur = conn.cursor()
+    for row in data:
+        cur.execute("""
+            INSERT INTO classroom_schedule (classroom, day_of_week, time, availability, capacity, pc, projector)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, row)
+    conn.commit()
+    cur.close()
+
+if __name__ == "__main__":
+    file_path = "time.csv"  
+    data = read_data_from_csv(file_path)
+    
+    create_table()
+    insert_data(data)
